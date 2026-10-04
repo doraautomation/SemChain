@@ -1,8 +1,7 @@
 # SemChain
 
 SemChain is a decentralized, risk-adaptive middleware that adds behavioral validation to
-distributed commit consensus. This repository contains the prototype used in the paper
-(anonymous submission).
+distributed commit consensus.
 
 For every commit, SemChain
 
@@ -63,13 +62,6 @@ mpiexec -n 4 python semchain.py --commits 192
 # 4 clusters x 20 validators
 mpiexec -n 4 python semchain.py --validators 20
 
-# validators whose repository serves tampered code
-mpiexec -n 4 python semchain.py --faulty-validators 3,40,77
-
-# validators that sign false test results
-mpiexec -n 4 python semchain.py --lying-validators 5,41
-```
-
 A small run to check the installation:
 
 ```bash
@@ -103,8 +95,8 @@ Each run writes to `results/`.
 
 | File              | Content                                                              |
 |-------------------|----------------------------------------------------------------------|
-| `commits.csv`     | one row per commit with tier, score, verdict, reason and fingerprint |
-| `blocks.csv`      | one row per block with consensus path, votes, decision and expected outcome |
+| `commits.csv`     | one row per commit with tier, score, verdict, reason, and fingerprint |
+| `blocks.csv`      | one row per block with consensus path, votes, decision, and expected outcome |
 | `ledger.jsonl`    | the committed blocks                                                 |
 | `timing.csv`      | time per component of the slowest cluster                            |
 | `performance.csv` | one appended line per run, for the scalability experiments           |
@@ -158,6 +150,4 @@ choice.
 
 - The analysis covers Python code only. Projects with substantial C, C++ or Cython code are outside
   its reach.
-- Validator threads that hold the same repository replica compute the checks of a block once, and
-  each thread casts its own vote from the result.
 - A commit that fails the static checks is not executed, since its verdict is already decided.
