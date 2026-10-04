@@ -1,0 +1,5 @@
+mpi4py>=3.1
+cryptography>=41.0
+uv>=0.4
+# only needed for --dataset swesmith
+datasets>=2.18
