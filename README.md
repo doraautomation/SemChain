@@ -63,13 +63,6 @@ mpiexec -n 4 python semchain.py --commits 192
 # 4 clusters x 20 validators
 mpiexec -n 4 python semchain.py --validators 20
 
-# validators whose repository serves tampered code
-mpiexec -n 4 python semchain.py --faulty-validators 3,40,77
-
-# validators that sign false test results
-mpiexec -n 4 python semchain.py --lying-validators 5,41
-```
-
 A small run to check the installation:
 
 ```bash
@@ -158,6 +151,4 @@ choice.
 
 - The analysis covers Python code only. Projects with substantial C, C++ or Cython code are outside
   its reach.
-- Validator threads that hold the same repository replica compute the checks of a block once, and
-  each thread casts its own vote from the result.
 - A commit that fails the static checks is not executed, since its verdict is already decided.
