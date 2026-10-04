@@ -1,7 +1,6 @@
 # SemChain
 
-SemChain is a decentralized, risk-adaptive middleware that adds behavioral validation to
-distributed commit consensus. 
+SemChain: A Decentralized, Risk-Adaptive Consensus Middleware for Behavioral CI/CD Validation in Collaborative Sciences
 
 For every commit, SemChain
 
