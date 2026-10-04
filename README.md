@@ -121,8 +121,6 @@ Environment setup is measured separately and excluded from the total time and th
 | `--no-test-low`         | off          | `LOW` commits get static checks only, instead of also being tested |
 | `--round-size`          | `8`          | validators that vote in each 2PQC round                        |
 | `--exec-workers`        | `0`          | parallel test runs per cluster (0 = CPU cores divided by clusters) |
-| `--faulty-validators`   | none         | validator ids whose repository serves tampered code            |
-| `--lying-validators`    | none         | validator ids that sign false test results                     |
 | `--pythons`             | auto         | for example `3.7=/path/python3.7,3.8=/path/python3.8`          |
 | `--swesmith-repo`       | none         | SWE-smith project, part of the repository name                 |
 | `--swesmith-methods`    | none         | bug-type prefixes, for example `pr_` or `func_pm_remove_cond`  |
