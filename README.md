@@ -38,7 +38,7 @@ results/             outputs of each run
 ## Setup
 
 ```bash
-bash scripts/setup.sh
+bash setup.sh
 ```
 
 This installs the Python packages, installs Python 3.8 with `uv` (used to build the BugsInPy test
