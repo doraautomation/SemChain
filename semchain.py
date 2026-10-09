@@ -621,6 +621,14 @@ def main():
                     help="only these bug types, comma-separated prefixes, e.g. pr_ or func_pm_remove_cond")
     ap.add_argument("--swesmith-file", default="", help="use a local JSONL copy of the dataset instead")
     ap.add_argument("--seed", type=int, default=0)
+    ap.add_argument("--consensus", choices=["adaptive", "always-1pc", "always-2pqc"], default="adaptive",
+                    help="ablation: risk-adaptive (default), or force every block through 1PC / 2PQC")
+    ap.add_argument("--execution", choices=["single", "replicated"], default="single",
+                    help="ablation: one executor + signed attestation (default), or every validator "
+                         "in the cluster runs the tests itself")
+    ap.add_argument("--no-vote-cache", action="store_true",
+                    help="ablation: every validator recomputes its own validation instead of sharing "
+                         "one result per distinct repository")
     args = ap.parse_args()
     critical_ops = re.compile(args.critical_ops)
     faulty = {int(x) for x in args.faulty_validators.split(",") if x.strip()}
@@ -720,6 +728,9 @@ def main():
         blocks.append({"id": j, "proposer": v, "commits": cs, "tier": tau_b, "blh": blh,
                        "seed": sha256("|".join(blh)), "F": [f["hash"] for f in fps]})
     t_p1 = time.time() - t0
+    if args.consensus != "adaptive":
+        for b in blocks:
+            b["tier"] = LOW if args.consensus == "always-1pc" else HIGH
 
     # Execute and Attest
     t0 = time.time()
@@ -736,16 +747,23 @@ def main():
     t_env = time.time() - t0
     t0 = time.time()
 
-    def execute(job):
-        b, c, fh = job
+    jobs = []
+    for b, c, fh in todo:
         e = select_executor(b, c["id"], my_validators)
+        runners = my_validators if args.execution == "replicated" else [e]
+        jobs += [(b, c, fh, v, e) for v in runners]
+
+    def execute(job):
+        b, c, fh, v, e = job
         if static_checks(extract_one(c, repos_of(e)[c["project"]], args.w, args.theta), critical_ops)[0] == FAIL:
-            return None
-        return execute_and_attest(args, c, fh, specs[(c["project"], c["bug"])], envs_dir,
-                                  keys[e], e, e in lying)
+            return c["id"], v == e, None
+        att = execute_and_attest(args, c, fh, specs[(c["project"], c["bug"])], envs_dir,
+                                 keys[v], v, v in lying)
+        return c["id"], v == e, att
 
     with ThreadPoolExecutor(max_workers=exec_workers) as pool:
-        atts = {a["commit"]: a for a in pool.map(execute, todo) if a}
+        # in replicated mode every validator runs the tests; the selected executor's result is the one kept
+        atts = {cid: att for cid, is_exec, att in pool.map(execute, jobs) if is_exec and att}
     exe = {"pubkeys": pubkeys, "atts": atts, "validators": my_validators, "test_low": args.test_low}
     t_exec = time.time() - t0
 
@@ -767,7 +785,7 @@ def main():
 
     def vote(v, b):
         L = repos_of(v)
-        key_ = (id(L), b["id"])
+        key_ = (v if args.no_vote_cache else id(L), b["id"])
         with check_lock:
             if key_ not in check_cache:
                 check_cache[key_] = node_validates(b, L, args, critical_ops, exe)
@@ -852,6 +870,7 @@ def main():
     per_cluster = Counter(b["proposer"] // V for b in blocks)
     table = [
         ("Clusters x validator threads", f"{size} x {V}", "clusters work independently"),
+        ("Mode: consensus / execution", f"{args.consensus} / {args.execution}", ""),
         ("Blocks per cluster", " / ".join(str(per_cluster[i]) for i in range(size)), ""),
         ("Commits: LOW / HIGH", f"{tiers[LOW]} / {tiers[HIGH]}", ""),
         ("Blocks: 1PC (LOW) / 2PQC (HIGH)", f"{paths['1PC']} / {paths['2PQC']}", ""),
