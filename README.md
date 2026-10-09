@@ -59,7 +59,13 @@ mpiexec -n 4 python semchain.py --projects black
 mpiexec -n 4 python semchain.py --commits 192
 
 # 4 clusters x 20 validators
-mpiexec -n 4 python semchain.py --validators 20
+mpiexec -n 4 python semchain.py --validators 30
+
+# validators whose repository serves tampered code
+mpiexec -n 4 python semchain.py --faulty-validators 3,40,77
+
+# validators that sign false test results
+mpiexec -n 4 python semchain.py --lying-validators 5,41
 
 A small run to check the installation:
 
@@ -145,6 +151,6 @@ choice.
 
 ## Notes
 
-- The analysis covers Python code only. Projects with substantial C, C++ or Cython code are outside
+- The analysis covers Python code only. Projects with substantial C, C++, or Cython code are outside
   its reach.
 - A commit that fails the static checks is not executed, since its verdict is already decided.
